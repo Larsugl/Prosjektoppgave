@@ -1,107 +1,354 @@
+#include <PubSubClient.h>
+#include <analogWrite.h>
+#include <WiFi.h>
 
-#include <analogWrite.h> //Import the analogWrite library for ESP32 so that analogWrite works properly
+// Wifi
+const char* ssid = "<Router Address>";                                                          // Your personal network SSID
+const char* wifi_password = "<Router Password>";                                                // Your personal network password
 
-#include <WiFi.h>//Imports the needed WiFi libraries
-#include <WiFiMulti.h> //We need a second one for the ESP32 (these are included when you have the ESP32 libraries)
+// MQTT
+const char* mqtt_server = "datakommg02.duckdns.org";                                            // IP of the MQTT broker
+#define mqtt_port 8883 //port of the MQTT broker
+#define force_topic "mqtt/ESP32/forcemsg"                                                       // topic/library for the sensor
+#define morse_topic "mqtt/ESP32/morsemsg"                                                       // topic/library for morse code
+#define mqtt_username "gruppe2"                                                                 // MQTT username
+#define mqtt_password "gruppe2"                                                                 // MQTT password
 
-#include <SocketIoClient.h> //Import the Socket.io library, this also imports all the websockets
+// Morse
+unsigned long signal_len,t1,t2;                                                                 // time for which button is pressed
+String code = "";                                                                               // string in which one alphabet is stored
+String msg = " ";                                                                               // string in which message is stored
 
-WiFiMulti WiFiMulti; //Declare an instane of the WiFiMulti library
-SocketIoClient webSocket; //Decalre an instance of the Socket.io library
+// RGB
+#define LedR 21                                                                                 // red connector for the Led
+#define LedG 22                                                                                 // green connector for the Led
+#define LedB 23                                                                                 // blue connector for the Led
 
-  float Forceresistor = 35;
-  float resistor = 3300;
+// Force
+const int interval = 10;                                                                        // interval for amount of force-messages being sent
 
 
-void Event(const char * payload, size_t length) { //Default event, what happens when you connect
-  Serial.printf("got message: %s\n", payload);
+// WiFi Client object
+WiFiClient wifiClient;                                                                          // defining the wifi connection for the client object
+
+// MQTT Client object
+PubSubClient client(wifiClient);                                                                // adding the client object for MQTT 
+
+
+// Function to setup WiFi connection
+void setup_wifi()
+{
+  Serial.print("Connecting to");
+  Serial.print(ssid);                                                                           // Printing out the IP that we connect to
+
+  WiFi.begin(ssid, wifi_password);                                                              // Initiating WiFi connection
+
+  // Check WiFi connection and try to reconnect
+  while (WiFi.status() != WL_CONNECTED) 
+  {
+    delay(500);                                                                                 // delay of 5ms to avoid overload
+    Serial.print(".");                                                                          // Simulate a loading-time for reconnection
+  }
+
+  // Print out the resulting WiFi connection
+  Serial.println("WiFi connected");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
 }
 
-void forceApplied(const char * Force, size_t length) { //What happens when the ESP32 receives a instruction from the server (with variable) to change the LED
-  Serial.printf("LED State: %s\n", Force); //First we print the data formated with the "printf" command
-  Serial.println(Force); //Then we just print the LEDStateData which will be a int (0 og 1 so in reeality bool) that tells us what to do with the LED
 
-  //Data conversion //We need som data processing to make this work
-  String dataString(Force); //First we convert the const char array(*) to a string in Arduino (this makes thing easier)
-  int ForceUsed = dataString.toInt(); //When we have a string we can use the built in Arduino function to convert to an integer
+// Function to reconnect if unable to connect to MQTT Broker
+void reconnect() 
+{
+  // Loop until we're reconnected
+  while (!client.connected()) 
+  {
+    Serial.print("Attempting MQTT connection...");
+    String clientID = "ESP32Client-";                                                           // Creating a Client ID to separate and identify it for clients and server
+    clientID += String(random(0xffff), HEX);                                                    // adding a random id for the ESP in case of several ESP-connections
+    // Attempt to connect
+    if (client.connect(clientID.c_str(),mqtt_username,mqtt_password)) 
+    {
+      Serial.println("connected");
+      client.subscribe("mqtt/#");                                                               // Resubscribe to topic/library
+    } 
+    // If connection fails, check error and trying to reconnect again
+    else 
+    {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" trying again");
+      delay(500);                                                                               // Wait 5 milliseconds before retrying
+    }
+  }
+}
+
+// Get message from library that we are subscribed to
+void callback(char* topic, byte *payload, unsigned int length) 
+{
+    Serial.println("-------new message from broker-----");
+    Serial.print("channel:");
+    Serial.println(topic);
+    Serial.print("data:");  
+    //Serial.write(payload, length);
+    //Serial.println();
+    payload[length] ='\0';
+    String info = String((char*)payload);
+    Serial.println(info);
+    Serial.println();
+    String topicStr = topic;
+    if (topicStr == "mqtt/webklient/morse")
+    {
+      morse();
+      msg = " ";
+      delay(1000);
+    }
+    else if (topicStr == "mqtt/webklient/force")
+    {
+      force();
+      delay(1000);
+    }
+    else if (topicStr == "mqtt/webklient/rgb")
+    {
+      String red = getValue(info, ',', 0);
+      String green = getValue(info, ',', 1);
+      String blue = getValue(info, ',', 2);
+      int redVal = red.toInt();
+      int greenVal = green.toInt();
+      int blueVal = blue.toInt();
+      Serial.println("Red: " + String(redVal));
+      Serial.println("Green: " + String(greenVal));
+      Serial.println("Blue: " + String(blueVal));
+      rgbled(redVal, greenVal, blueVal);
+    }
+    else if (topicStr == "mqtt/webklient/morsemsg")
+    {
+      morseMsg(info);
+      delay(1000);
+    }
+}
+
+void morseMsg(String msg)
+{
+  int j = msg.length();
+
+  for (int i = 0; i < j; i++)
+  {
+    if (msg[i] == '-')
+    {
+      analogWrite(LedR, 255);
+      delay(750);
+    }
+    else if (msg[i] == '.')
+    {
+      analogWrite(LedR, 255);
+      delay(250);
+    }
+    else if (msg[i] == ' ')
+    {
+      delay(1250);
+    }
+   analogWrite(LedR, 0);
+   delay(250);
+  }
+}
+
+
+
+String getValue(String data, char separator, int index)
+{
+    int found = 0;
+    int strIndex[] = { 0, -1 };
+    int maxIndex = data.length() - 1;
+
+    for (int i = 0; i <= maxIndex && found <= index; i++) {
+        if (data.charAt(i) == separator || i == maxIndex) {
+            found++;
+            strIndex[0] = strIndex[1] + 1;
+            strIndex[1] = (i == maxIndex) ? i+1 : i;
+        }
+    }
+    return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+
+
+void rgbled(int r,int g,int b)
+{
   
-  force(ForceUsed);
+  if ((r > 0 && r <= 255) or (g > 0 && g <= 255) or(b > 0 && b <= 255))
+  {
+    if (r > 0 && r <= 255)
+    {
+      Serial.println(String(r));
+      analogWrite(LedR, r);
+    }
+    if (g > 0 && g <= 255)
+    {
+      Serial.println(String(g));
+      analogWrite(LedG, g);
+    }
+    if (b > 0 && b <= 255)
+    {
+      Serial.println(String(b));
+      analogWrite(LedB, b);
+    }
+  }
+  delay(1000);
+  analogWrite(LedR, 0);
+  analogWrite(LedG, 0);
+  analogWrite(LedB, 0);
 }
 
-void dataRequest(const char * dataRequestData, size_t length) {
-  Serial.printf("Datarequest Data: %s\n", dataRequestData);
-  Serial.println(dataRequestData);
 
-  String dataString(dataRequestData);
-  int RequestState = dataString.toInt();
-
-  Serial.print("This is the Datarequest Data in INT: ");
-  Serial.println(RequestState);
-
-  if (RequestState == 0) { //If the datarequest gives the variable 0, do this (default)
-
-    char str[10]; //Decalre a char array (needs to be char array to send to server)
-    itoa(analogRead(35), str, 10); //Use a special formatting function to get the char array as we want to, here we put the analogRead value from port 27 into the str variable
-    Serial.print("ITOA TEST: ");
-    Serial.println(str);
-
-    webSocket.emit("dataFromBoard", str); //Here the data is sendt to the server and then the server sends it to the webpage
-    //Str indicates the data that is sendt every timeintervall, you can change this to "250" and se 250 be graphed on the webpage
+void morse()
+{
+  while (msg != "")
+  {
+  NextDotDash:
+    while (analogRead(35) == 0) {}
+    t1 = millis();                                //time at button press
+    while (analogRead(35) >= 10) {}
+    t2 = millis();                                //time at button release
+    signal_len = t2 - t1;                         //time for which button is pressed
+    if (signal_len > 50)                          //to account for switch debouncing
+    {
+      code += readio();                           //function to read dot or dash
+    }
+    while ((millis() - t2) < 1000)                //if time between button press greater than 0.5sec, skip loop and go to next alphabet
+    {     
+      if (analogRead(35) >= 100)
+      {
+        goto NextDotDash;
+      }
+    }
+    convertor();                                  //function to decipher code into alphabet
   }
 }
 
-void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
+String readio()
+{
+  if (signal_len < 500 && signal_len > 50)
+  {
+    return ".";                                   //if button press less than 0.6sec, it is a dot
+  }
+  else if (signal_len > 500 && signal_len < 1000)
+  {
+    return "-";                                   //if button press more than 0.6sec, it is a dash
+  }
+}
 
-  Serial.setDebugOutput(true); //Set debug to true (during ESP32 booting)
-
-  Serial.println();
-  Serial.println();
-  Serial.println();
-
-  for (uint8_t t = 4; t > 0; t--) { //More debugging
-    Serial.printf("[SETUP] BOOT WAIT %d...\n", t);
-    Serial.flush();
+void convertor()
+{
+  static String letters[] = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-",
+                             ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", "Å"
+                            };
+  int i = 0;
+  if (code == ".-.-.-")
+  {
+    msg += ".";     //add end of message
+    Serial.println(msg);
     delay(1000);
+    if (client.publish(morse_topic, msg.c_str())) {
+      Serial.println("Morse sent!");
+    } 
+
+    // If data is not able to be sent to the server, try to reconnect to broker and send again
+    else {
+      Serial.println("Morse failed to send. Reconnecting to MQTT broker and trying again");
+      reconnect();
+      client.publish(morse_topic, msg.c_str());
+    }
+    msg = "";     //reset msg to blank string
   }
-
-  WiFiMulti.addAP("Ida sin iPhone", "hannah00"); //Add a WiFi hotspot (addAP = add AccessPoint) (put your own network name and password in here)
-
-  while (WiFiMulti.run() != WL_CONNECTED) { //Here we wait for a successfull WiFi connection untill we do anything else
-    Serial.println("Not connected to wifi...");
-    delay(100);
+  else if (code == "......")
+  {
+    msg += " ";
+    Serial.println(msg);
   }
+  else if (signal_len > 1000)
+  {
+    int lastChar = msg.length() - 1;
+    msg.remove(lastChar);
+    Serial.println("Removed last character");
+    Serial.println(msg);
+  }
+  
+  else
+  {
+    while (letters[i] != "Å")                          // loop for comparing input code with letters array
+    {
+      if (letters[i] == code)
+      {
+        Serial.println(char('A' + i));
+        msg += (char('A' + i));                        // add character to msg
+        Serial.println(msg);
+        break;                                         // break out of loop
+      }
+      i++;
+    }
+    if (letters[i] == "Å")
+    {
+      Serial.println("<Wrong input>");                 // if input code doesn't match any letter, error
+    }
+  }
+  code = "";                                           // reset code to blank string
+}
 
-  Serial.println("Connected to WiFi successfully!"); //When we have connected to a WiFi hotspot
-
-  //Here we declare all the different events the ESP32 should react to if the server tells it to.
-  //a socket.emit("identifier", data) with any of the identifieres as defined below will make the socket call the functions in the arguments below
-  webSocket.on("clientConnected", Event); //For example, the socket.io server on node.js calls client.emit("clientConnected", ID, IP) Then this ESP32 will react with calling the event function
- // webSocket.on("LEDStateChange", changeLEDState);
-  webSocket.on("Force", forceApplied);
-
-  //Send data to server/webpage
-  webSocket.on("dataRequest", dataRequest); //Listens for the command to send data
-
-  webSocket.begin("46.249.252.58", 2520); //This starts the connection to the server with the ip-address/domainname and a port (unencrypted)
+void force()
+{
+  int start = 0;
+  for (start; start < interval; start++)
+  {
+  // Gets the force data from the sensor
+    float forceApplied = analogRead(35); 
+    float force = forceApplied * (3.3/1023.00);
+  
+    // Checks if there's any data recorded
+    if (isnan(forceApplied) || isnan(force)) {
+      Serial.println("Failed to read force");
+    } 
+    // Starts the process of reconfiguring message to be sent
+    else {
+      Serial.print("Force: ");
+      Serial.print(force);
+      
+      // MQTT can only send Strings
+      String fs="Force: "+String((float)force);
+      
+      // Tries to publish the data, and checks if it is sent
+      if (client.publish(force_topic, String(force).c_str())) {
+        Serial.println("Force sent!");
+      } 
+  
+      // If data is not able to be sent to the server, try to reconnect to broker and send again
+      else {
+        Serial.println("Force failed to send. Reconnecting to MQTT broker and trying again");
+        reconnect();
+        client.publish(force_topic, String(force).c_str());
+      }
+      delay(250);
+    }
+  }
 }
 
 
-void force(bool forceApplied) {
 
-  forceApplied = analogRead(35) * (3.3 / 1023.00);
-  Serial.println(forceApplied);
-
-  /*
-  forceApplied = analogRead(35) * (3.3)/10223.00);
-  While (forceApplied > 0){
-  Serial.println(forceApplied);
-  }  
-   */
+// Setup function for the client
+void setup() {
+  pinMode(LedR, OUTPUT);
+  pinMode(LedG, OUTPUT);
+  pinMode(LedB, OUTPUT);
+  Serial.begin(115200);                                   // setting the serial data transmission of bits pretty high to ensure correct data being sent
+  Serial.setTimeout(500);                                 // Delay between wait for serial data lowered from 1000 to 500
+  setup_wifi();                                           // starts up wifi connection
+  client.setServer(mqtt_server, mqtt_port);               // starts up server connection
+  client.setCallback(callback);                           // starts recording messages from chosen library/libraries
+  reconnect();                                            // Reconnects to server to transmit data
 }
-
 
 void loop() {
-  webSocket.loop();
+  client.loop();                                           // sets client in a loop with the server
+  callback;                                                // checks incoming messages
+  delay(1000);
 }
