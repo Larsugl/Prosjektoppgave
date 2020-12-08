@@ -1,0 +1,92 @@
+<!DOCTYPE html> <!--Defines the HTML document-->
+<html lang="no"> <!--Sets the language for the webpage-->
+
+<head> <!--Defined the head element, which is to say the top of the webpage. Sometimes menus are placed here-->
+    <meta charset="UTF-8"> <!--Sets the encoding of the webpage-->
+    <title>Gruppe 2 || Prosjekt</title> <!--Sets the title of the webpage-->
+    <link rel="stylesheet" href="style.css"> <!--Imports the stylesheet of the webpage. It gives element style-->
+    <script src="libraries/paho-mqtt.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.1.1/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.1.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.1.1/firebase-analytics.js"></script>
+    <script src="script/script.js"></script>
+
+
+</head>
+<body>
+<div id="header">
+    <h1>Datakom kontrollpanel</h1>
+    <p>En webside laget av Gruppe 2.</p>
+    <p></p>
+
+    <!-- Navigation -->
+    <div id="navbar">
+
+        <h1 class="nav_text" id = "help_text" onclick = showhelp()>INFO</h1>
+        <h1 class="nav_text" id = "color_text" onclick=sendlight()> SEND FARGE</h1>
+        <h1 class="nav_text" id = "morse_text" onclick=showdisplay("message")> MORSE</h1>
+        <h1 class="nav_text" id = "pressure_text" onclick=showdisplay("log")> TRYKK</h1>
+    </div>
+
+</div>
+
+    <div id="main-content">
+        <div id="help_box" class ="help">
+            <div class ="help_text">
+            <span class="close" onclick="closehelp()">&times;</span>
+            <p> Denne nettsiden har to moduser: Morse modus, og Trykk modus.
+                For å bytte mellom disse modusene så kan du trykke på teksten i headeren.
+                I trykk modus så kan du lese av trykk sensor verdiene, og se lyset nederst til høyre på nettside skifte farge etter om hvor hardt du trykker inn sensoren.
+                I morse modus så kan du lese mottate morse meldinger fra sensoren omgjort til tekst.
+                Extra funksjonaliteter: I morse modus så kan du også først klikke på boksen i nedre venstre hjørne for å endre et lys,
+                når du da trykker på "Send lys" knappen, så vil lyset på ESP32 endre til denne valgte fargen i nedre venstre hjørne.
+                Du kan også skrive inn en melding i kommando linjen for å sende en morse melding til ESP32 som vil blink i samme farge som du valgte med å bruke knappen i headeren.
+
+            </p>
+            </div>
+        </div>
+
+        <div class="box"> <!--First content box, has the command line to send messages to the server.-->
+        <div class="title_box">
+            <h1 class="title_text"> Kommando linje </h1>
+        </div>
+        <div id="terminal">
+            <input type="text"
+                   id= "data"
+            placeholder="Skriv inn meldinger her"
+            onkeypress="CheckforEnter(this.value)">  <!--This sends the message to the server whenever you press enter. TODO: try looking for better alternatives-->
+        </div>
+        </div>
+
+        <div class="box" id="log_box"> <!--Second content box, this has the incoming messages from the server,
+         this is hidden at start until you click on "TRYKK" -->
+            <div class="title_box" id ="log_title_box">
+                <h1 class="title_text">  Sensor avlesninger </h1>
+            </div>
+            <div id ="message_box">
+                <div id="log">
+                </div>
+            </div>
+        </div>
+
+        <div class="box" id="text_box">  <!-- Also the Second content box, This shows the recieved morse message-->
+            <div class="title_box">
+                <h1 class="title_text" >  Meldingen som ble mottatt: </h1>
+            </div>
+        <div><h1 id="morse_recieved"> Venter på meldinger....</h1></div>
+        </div>
+
+        <div class="box" id="light_box" onclick="swaplight()"> <!--Third content box, this swaps the lights in the box and esp32 by clicking on-->
+        <div class="title_box">
+            <h1 class="title_text"> Trykk for å endre farge </h1>
+        </div>
+        </div>
+
+        <div class="box" id="pressure_box"> <!--Fourth content box, the light in the box swaps based on the sensor readings-->
+            <div class="title_box">
+                <h1 class="title_text"> Farge basert på trykk </h1>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

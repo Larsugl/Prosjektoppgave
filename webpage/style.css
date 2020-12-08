@@ -1,0 +1,178 @@
+/*This entire file will not be commented. If you want to learn the different style properties check out W3Schools (google it)*/
+* { /*This symbol applies to all elements on the page */
+    margin: 0;
+    padding: 0;
+}
+/*Before we continue, if a element has a . (dot) in front of it it is a CLASS (can apply to more then 1 element) */
+/*If a element has a # (hashtag) it is an ID (can only be applied to one element) */
+html,body { /*Here two elements are defined at the same time, that is possible. It is some of the main elements, html and body*/
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+
+#header {
+    padding-top: 2%;
+    font-family: "Arial";
+    flex-flow: wrap;
+    text-align: center;
+    background: #82eab6;
+}
+
+/* Style the top navigation bar */
+#navbar {
+    overflow: hidden;
+    background-color: #333;
+    display:flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+}
+
+/* Style the navigation bar links */
+.nav_text {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#pressure_text {
+    color: grey;
+}
+.help {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.help_text {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+/* The Close Button */
+.close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+
+
+.box {
+    width: 49.9%;
+    height: 49.9%;
+    align-items: center;
+    justify-content: center;
+}
+
+#main-content { /*Here is the first user defined element, since there only will be one of this it is an ID with a # */
+    width: 100%; /*The element width in % (precentage). Using precentage means the element will scale on different monitor sizes*/
+    height: 100%; /*Height using precentage. 100% means it will cover the entire page (even tough you might not be able to see it because it is invisible)*/
+    display: flex; /*Display flex gives us a flexible way of displaying elements. It means that elements will follow scaling and jump if the page becomes to small*/
+    align-items: center; /*This aligns the items on the y-axis. Here we are telling all elements within to always be aligned at the start*/
+    justify-content: center; /*This aligns the items on the x-axis. Here we are telling all elements within to always be aligned at the center*/
+    flex-flow: wrap; /*This tells all the elements within this element/box that if the screen becoms to small the elements are allowed to alter placement for optimal view/design*/
+    background-color: rgba(248, 248, 248, 1.0); /*This sets the background color of the box, in this case close to almost white*/
+}
+
+/* Control */
+.title_box {
+    width:100%;
+    height:14.8%;
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(92,96,255,0.41)
+
+}
+.title_text {
+    width:100%;
+    height:100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight:700;
+    font-family: Comic Sans MS;
+}
+#terminal {
+    width: 100%;
+    height: 85%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-flow: wrap;
+    background: rgba(148,159,255,0.34)
+}
+
+#message_box {
+    width: 100%;
+    height:85%;
+    overflow-y: scroll;
+    overflow-x: auto;
+}
+
+#text-box {
+    display: flex;
+    background: white;
+    text-align: center;
+    justify-content: center;
+    font-family: "Arial";
+    flex-flow: wrap;
+}
+
+#morse_recieved {
+    display: block;
+    margin-top: 20%;
+    text-align: center;
+    justify-content: center;
+    font-size: 30px;
+    font-family: Comic Sans MS;
+}
+#log {
+    width:100%;
+    height:10%;
+    display: inline;
+    align-items: flex-start;
+    justify-content: flex-start;
+    font-size: 20px;
+    font-weight:700;
+}
+
+#log_box {
+    display: none;
+}
+
+#light_box {
+    background-color: #ff0000;
+    cursor: pointer;
+}
+
+#pressure_box {
+    background-color: #000000;
+}
