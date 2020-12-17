@@ -4,7 +4,7 @@ CONTENTS OF THIS FILE:
 
  * REQUIREMENTS
  * INSTALLATION
- * STARTUP VALUES
+ * SETUP VALUES
  * OPTIONS
 
 
@@ -50,13 +50,13 @@ Follow comments and descriptions in ESP32 setup code.
 
 --------------------------------
 
-#Setup values
+Setup values
 Values that needs to be changed for each value is described in comments of code.
 
 
 ---------------------------------
 
-#Options
+Options
 Delay values, timers, connection-setup can be changed to preferred values.
 
 --------------------------------
