@@ -31,22 +31,24 @@
 </div>
 
     <div id="main-content">
+
         <div id="help_box" class ="help">
             <div class ="help_text">
             <span class="close" onclick="closehelp()">&times;</span>
-            <p> Denne nettsiden har to moduser: Morse modus, og Trykk modus.
-                For å bytte mellom disse modusene så kan du trykke på teksten i headeren.
-                I trykk modus så kan du lese av trykk sensor verdiene, og se lyset nederst til høyre på nettside skifte farge etter om hvor hardt du trykker inn sensoren.
-                I morse modus så kan du lese mottate morse meldinger fra sensoren omgjort til tekst.
-                Extra funksjonaliteter: I morse modus så kan du også først klikke på boksen i nedre venstre hjørne for å endre et lys,
-                når du da trykker på "Send lys" knappen, så vil lyset på ESP32 endre til denne valgte fargen i nedre venstre hjørne.
-                Du kan også skrive inn en melding i kommando linjen for å sende en morse melding til ESP32 som vil blink i samme farge som du valgte med å bruke knappen i headeren.
+                <p> Denne nettsiden har to moduser: Morse modus, og Trykk modus. </p>
+                <p> For å bytte mellom disse modusene så kan du trykke på teksten i headeren. </p>
+                <p>I trykk modus så kan du lese av trykk sensor verdiene, og se lyset nederst til høyre på nettside skifte farge
+                    etter om hvor hardt du trykker inn sensoren. </p>
+                <p>I morse modus så kan du lese mottate morse meldinger fra sensoren omgjort til tekst. <p/>
+                <p>Extra funksjonaliteter: I morse modus så kan du også først klikke på teksten i nedre høyre hjørne for å endre et lys,
+                når du da trykker på "Send lys" knappen, så vil et led lys på ESP32 endre til denne valgte fargen i nedre høyre hjørne.
+                Du kan også skrive inn en melding i kommando linjen for å sende en morse melding til ESP32 som vil blinke meldingen på et LED lys.
 
             </p>
             </div>
         </div>
 
-        <div class="box"> <!--First content box, has the command line to send messages to the server.-->
+        <div class="box" id="input_box"> <!--First content box, has the command line to send messages to the server.-->
         <div class="title_box">
             <h1 class="title_text"> Kommando linje </h1>
         </div>
@@ -71,22 +73,31 @@
 
         <div class="box" id="text_box">  <!-- Also the Second content box, This shows the recieved morse message-->
             <div class="title_box">
-                <h1 class="title_text" >  Meldingen som ble mottatt: </h1>
+                <h1 class="title_text" >  Meldingen som ble mottatt </h1>
             </div>
         <div><h1 id="morse_recieved"> Venter på meldinger....</h1></div>
         </div>
 
-        <div class="box" id="light_box" onclick="swaplight()"> <!--Third content box, this swaps the lights in the box and esp32 by clicking on-->
-        <div class="title_box">
-            <h1 class="title_text"> Trykk for å endre farge </h1>
-        </div>
+        <div class="box" id="morse_info">
+            <div class="title_box">
+                <h1 class="title_text" >  Morse oversettelse </h1>
+            </div>
+            <h3>
+                "A": ".-", "B": "-...", "C": "-.-.", "D": "-..", "E": ".", "F": "..-.", "G": "--.", "H": "....", "I": "..",
+                "J": ".---", "K": "-.-", "L": ".-..", "M": "--", "N": "-.", "O": "---", "P": ".--.", "Q": "--.-", "R": ".-.",
+                "S": "...", "T": "-", "U": "..-", "V": "...-", "W": ".--", "X": "-..-", "Y": "-.--", "Z": "--.."
+                </h3>
         </div>
 
-        <div class="box" id="pressure_box"> <!--Fourth content box, the light in the box swaps based on the sensor readings-->
-            <div class="title_box">
-                <h1 class="title_text"> Farge basert på trykk </h1>
+        <div class="box" id="light_box"> <!--Third content box, this swaps the lights in the box and esp32 by clicking on-->
+        <div class="title_box" id = "light_title_box" onclick="swaplight()">
+            <h1 class="title_text"> Trykk for å endre farge </h1>
+        </div>
+            <div class="title_box" id = "pressure_title_box">
+                <h1 class="title_text"> Trykksensor lys </h1>
             </div>
         </div>
+
     </div>
 </body>
 </html>
