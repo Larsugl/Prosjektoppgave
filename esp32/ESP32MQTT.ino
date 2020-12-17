@@ -356,7 +356,7 @@ void setup() {
 }
 
 void loop() {
-  client.loop();                                           // sets client in a loop with the server
-  callback;                                                // checks incoming messages
+  client.loop();                                                                              // sets client in a loop with the server
+  callback;                                                                                   // checks incoming messages
   delay(1000);
 }
