@@ -1,0 +1,25 @@
+This file includes all dependencies used, required and optional.
+
+NGINX:
+https://www.raspberrypi.org/documentation/remote-access/web-server/nginx.md
+
+Certbot:
+https://certbot.eff.org/
+
+Letsencrypt:
+https://letsencrypt.org/
+
+UFW:
+https://wiki.ubuntu.com/UncomplicatedFirewall
+
+Fail2Ban:
+https://www.fail2ban.org/wiki/index.php/Main_Page
+
+VNC:
+https://www.realvnc.com/en/
+
+SSH:
+https://www.raspberrypi.org/documentation/remote-access/ssh/
+
+DuckDNS:
+https://www.duckdns.org/
