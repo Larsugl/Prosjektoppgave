@@ -44,7 +44,7 @@ Install each dependency in order.
 
 Setup instructions for ESP32:
 
-![alt text](https://github.com/Larsugl/Prosjektoppgave/sources/schematic/datakomschematic.png?raw=true)
+![alt text](https://github.com/Larsugl/Prosjektoppgave/blob/main/sources/schematic/datakomschematic.png?raw=true)
 
 Follow comments and descriptions in ESP32 setup code.
 
