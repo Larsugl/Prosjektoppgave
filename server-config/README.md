@@ -54,4 +54,4 @@ Changing username/password, open ports, enabling/disabling IP/MAC, apply DNS, co
 --------------------------------
 
 Made by Datakomm gruppe 02. 
-Inquiries about the website can be sent to mabron@stud.ntnu.no
+Inquiries about the website can be sent to larsug@stud.ntnu.no
